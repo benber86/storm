@@ -98,7 +98,42 @@ func compare(a, b interface{}, tok token.Token) bool {
 		}
 		return constant.Compare(constant.MakeInt64(x), tok, constant.MakeInt64(y))
 	}
+	
+	if (reflect.TypeOf(a).String() == "null.Time" || strings.HasSuffix(reflect.TypeOf(a).String(), "NullTime")) &&
+		(reflect.TypeOf(b).String() == reflect.TypeOf(a).String()) {
+		var x, y int64
+		x = 1
+		validfielda := vala.FieldByName("Valid")
+		validfieldb := valb.FieldByName("Valid")
+		timea := vala.FieldByName("Time")
+		timeb := valb.FieldByName("Time")
 
+		if !validfielda.IsValid() || !validfieldb.IsValid() {
+			return false
+		}
+
+		if validfielda.Interface() == false && validfieldb.Interface() == false && tok == token.EQL {
+			return true
+		}
+		if (validfielda.Interface() != true) || (validfieldb.Interface() != true) {
+			return false
+		}
+
+		equala := timea.MethodByName("Equal")
+		beforea := timea.MethodByName("Before")
+
+		if !equala.IsValid() || !beforea.IsValid() {
+			return false
+		}
+
+		if equala.Call([]reflect.Value{timeb})[0].Bool() {
+			y = 1
+		} else if beforea.Call([]reflect.Value{timeb})[0].Bool() {
+			y = 2
+		}
+		return constant.Compare(constant.MakeInt64(x), tok, constant.MakeInt64(y))
+	}
+	
 	if tok == token.EQL {
 		return reflect.DeepEqual(a, b)
 	}
