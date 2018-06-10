@@ -18,6 +18,11 @@ type B struct {
 	Name string
 }
 
+type NullTime struct {
+	Time  time.Time
+	Valid bool
+}
+
 func TestCompare(t *testing.T) {
 	require.True(t, compare(10, 10, token.EQL))
 	require.True(t, compare(10, 10.0, token.EQL))
@@ -39,6 +44,11 @@ func TestCompare(t *testing.T) {
 	require.True(t, compare(t1, t1, token.EQL))
 	require.True(t, compare(t1, t2, token.LSS))
 	require.True(t, compare(t1, t3, token.GTR))
+	require.True(t, compare(nt1, nt1, token.EQL))
+	require.True(t, compare(nt1, nt2, token.LSS))
+	require.True(t, compare(nt1, nt3, token.GTR))
+	require.True(t, compare(ntf, ntf, token.EQL))
+	require.False(t, compare(ntf, nt3, token.LSS))
 	require.False(t, compare(&A{Name: "John"}, t1, token.EQL))
 	require.False(t, compare(&A{Name: "John"}, t1, token.LEQ))
 	require.True(t, compare(uint32(10), uint32(5), token.GTR))
