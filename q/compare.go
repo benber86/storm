@@ -7,6 +7,11 @@ import (
 	"strconv"
 )
 
+type Comparable interface {
+	// Returns a number negative, null or positive if lower, equal or greater than the other.
+	Compare(other interface{}) (int, error)
+}
+
 func compare(a, b interface{}, tok token.Token) bool {
 	vala := reflect.ValueOf(a)
 	valb := reflect.ValueOf(b)
@@ -97,6 +102,15 @@ func compare(a, b interface{}, tok token.Token) bool {
 			y = 2
 		}
 		return constant.Compare(constant.MakeInt64(x), tok, constant.MakeInt64(y))
+	}
+
+	o, ok := (valb.Interface()).(Comparable)
+	if ok && ak == bk {
+		result, err := o.Compare(a)
+		if err != nil {
+			return false
+		}
+		return constant.Compare(constant.MakeInt64(0), tok, constant.MakeInt64(int64(result)))
 	}
 
 	if tok == token.EQL {
